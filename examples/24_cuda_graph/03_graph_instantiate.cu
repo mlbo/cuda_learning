@@ -34,7 +34,7 @@ void basic_instantiation(float* d_data, int n) {
     CHECK_CUDA(cudaStreamCreate(&stream));
 
     cudaGraph_t graph;
-    cudaGraphExec_t graphExec;
+    cudaGraphExec_t graphExec = nullptr;
 
     int blockSize = 256;
     int numBlocks = (n + blockSize - 1) / blockSize;
@@ -61,7 +61,9 @@ void basic_instantiation(float* d_data, int n) {
     }
 
     // 清理
-    CHECK_CUDA(cudaGraphExecDestroy(graphExec));
+    if (graphExec != nullptr) {
+        CHECK_CUDA(cudaGraphExecDestroy(graphExec));
+    }
     CHECK_CUDA(cudaGraphDestroy(graph));
     CHECK_CUDA(cudaStreamDestroy(stream));
 }
@@ -74,7 +76,7 @@ void instantiation_error_handling(float* d_data, int n) {
     CHECK_CUDA(cudaStreamCreate(&stream));
 
     cudaGraph_t graph;
-    cudaGraphExec_t graphExec;
+    cudaGraphExec_t graphExec = nullptr;
 
     int blockSize = 256;
     int numBlocks = (n + blockSize - 1) / blockSize;
@@ -85,10 +87,12 @@ void instantiation_error_handling(float* d_data, int n) {
     CHECK_CUDA(cudaStreamEndCapture(stream, &graph));
 
     // 使用错误回调进行实例化
-    cudaGraphNode_t errorNode;
+    cudaGraphNode_t errorNode = nullptr;
     char errorBuffer[1024];
+    errorBuffer[0] = '\0';
 
     cudaError_t err = cudaGraphInstantiate(&graphExec, graph, &errorNode, errorBuffer, sizeof(errorBuffer));
+    errorBuffer[sizeof(errorBuffer) - 1] = '\0';
 
     if (err == cudaSuccess) {
         printf("实例化成功，无错误\n");

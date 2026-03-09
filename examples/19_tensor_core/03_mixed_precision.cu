@@ -54,16 +54,22 @@ __global__ void matmul_half2(const half* A, const half* B, float* C, int M, int 
     if (row < M && col < N) {
         float sum = 0.0f;
 
-        // 使用half2一次加载两个FP16值
-        for (int k = 0; k < K; k += 2) {
-            half2 a2 = *reinterpret_cast<const half2*>(&A[row * K + k]);
-            half2 b2_0 = *reinterpret_cast<const half2*>(&B[k * N + col]);
-            half2 b2_1 = *reinterpret_cast<const half2*>(&B[(k + 1) * N + col]);
-
-            // 转换为float并计算
+        // 使用half2一次加载A中的两个连续元素，对B保持标量读取避免越界
+        int k = 0;
+        for (; k + 1 < K; k += 2) {
+            half2 a2 = __halves2half2(A[row * K + k], A[row * K + k + 1]);
             float2 a_f2 = __half22float2(a2);
-            sum += a_f2.x * __half2float(reinterpret_cast<const half*>(&b2_0)[0]);
-            sum += a_f2.y * __half2float(reinterpret_cast<const half*>(&b2_1)[0]);
+            float b0 = __half2float(B[k * N + col]);
+            float b1 = __half2float(B[(k + 1) * N + col]);
+            sum += a_f2.x * b0;
+            sum += a_f2.y * b1;
+        }
+
+        // 处理K为奇数时的尾元素
+        if (k < K) {
+            float a = __half2float(A[row * K + k]);
+            float b = __half2float(B[k * N + col]);
+            sum += a * b;
         }
         C[row * N + col] = sum;
     }

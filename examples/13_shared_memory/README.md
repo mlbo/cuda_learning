@@ -36,7 +36,7 @@ make clean
 # 在项目根目录
 mkdir build && cd build
 cmake .. -DCMAKE_CUDA_ARCHITECTURES=80
-make 12_01_smem_basics 12_02_static_vs_dynamic ...
+make 13_01_smem_basics 13_02_static_vs_dynamic ...
 ```
 
 ## 学习要点

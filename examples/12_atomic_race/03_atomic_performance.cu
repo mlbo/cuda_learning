@@ -68,8 +68,8 @@ __global__ void sum_atomic_block(float* data, float* result, int N) {
 }
 
 // 计时辅助函数
-float time_kernel(void (*kernel)(float*, float*, int),
-                  float* d_data, float* d_result, int N,
+template <void (*Kernel)(float*, float*, int)>
+float time_kernel(float* d_data, float* d_result, int N,
                   int warmup = 5, int runs = 10) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -77,7 +77,7 @@ float time_kernel(void (*kernel)(float*, float*, int),
 
     // 预热
     for (int i = 0; i < warmup; i++) {
-        kernel<<<256, 256>>>(d_data, d_result, N);
+        Kernel<<<256, 256>>>(d_data, d_result, N);
     }
     cudaDeviceSynchronize();
 
@@ -89,7 +89,7 @@ float time_kernel(void (*kernel)(float*, float*, int),
     cudaEventRecord(start);
     for (int i = 0; i < runs; i++) {
         cudaMemcpy(d_result, &zero, sizeof(float), cudaMemcpyHostToDevice);
-        kernel<<<256, 256>>>(d_data, d_result, N);
+        Kernel<<<256, 256>>>(d_data, d_result, N);
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
@@ -124,12 +124,11 @@ int main() {
     printf("数据量: %d (%.2f MB)\n", N, (float)bytes / 1024 / 1024);
     printf("期望结果: %d\n\n", N);
 
-    float zero = 0.0f;
     float h_result;
     float time_ms;
 
     // 测试直接原子操作版本
-    time_ms = time_kernel(sum_atomic_direct, d_data, d_result, N);
+    time_ms = time_kernel<sum_atomic_direct>(d_data, d_result, N);
     cudaMemcpy(&h_result, d_result, sizeof(float), cudaMemcpyDeviceToHost);
     printf("1. 直接原子操作:\n");
     printf("   时间: %.4f ms\n", time_ms);
@@ -138,7 +137,7 @@ int main() {
     printf("   原子操作次数: %d\n\n", N);
 
     // 测试Warp规约版本
-    time_ms = time_kernel(sum_atomic_warp, d_data, d_result, N);
+    time_ms = time_kernel<sum_atomic_warp>(d_data, d_result, N);
     cudaMemcpy(&h_result, d_result, sizeof(float), cudaMemcpyDeviceToHost);
     printf("2. Warp规约 + 原子操作:\n");
     printf("   时间: %.4f ms\n", time_ms);
@@ -147,7 +146,7 @@ int main() {
     printf("   原子操作次数: ~%d (减少32倍)\n\n", N / 32);
 
     // 测试Block规约版本
-    time_ms = time_kernel(sum_atomic_block, d_data, d_result, N);
+    time_ms = time_kernel<sum_atomic_block>(d_data, d_result, N);
     cudaMemcpy(&h_result, d_result, sizeof(float), cudaMemcpyDeviceToHost);
     printf("3. Block规约 + 原子操作:\n");
     printf("   时间: %.4f ms\n", time_ms);

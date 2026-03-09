@@ -102,12 +102,15 @@ bool check_result(int* h_hist, int* d_hist, int num_bins) {
 }
 
 // 计时函数
-float time_kernel(void (*kernel)(unsigned char*, int*, int),
-                  unsigned char* d_data, int* d_hist, int N,
+template <void (*Kernel)(unsigned char*, int*, int)>
+float time_kernel(unsigned char* d_data, int* d_hist, int N,
                   int runs = 10) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+
+    int threads = 256;
+    int blocks = (N + threads - 1) / threads;
 
     // 初始化直方图
     cudaMemset(d_hist, 0, NUM_BINS * sizeof(int));
@@ -115,7 +118,7 @@ float time_kernel(void (*kernel)(unsigned char*, int*, int),
     cudaEventRecord(start);
     for (int i = 0; i < runs; i++) {
         cudaMemset(d_hist, 0, NUM_BINS * sizeof(int));
-        kernel<<<256, 256>>>(d_data, d_hist, N);
+        Kernel<<<blocks, threads>>>(d_data, d_hist, N);
     }
     cudaEventRecord(stop);
     cudaEventSynchronize(stop);
@@ -162,21 +165,21 @@ int main() {
     float ms;
 
     // 测试朴素版本
-    ms = time_kernel(histogram_naive, d_data, d_hist, N);
+    ms = time_kernel<histogram_naive>(d_data, d_hist, N);
     cudaMemcpy(h_hist_gpu, d_hist, NUM_BINS * sizeof(int), cudaMemcpyDeviceToHost);
     printf("1. 朴素版本:\n");
     printf("   时间: %.4f ms\n", ms);
     printf("   正确: %s\n\n", check_result(h_hist_cpu, h_hist_gpu, NUM_BINS) ? "是" : "否");
 
     // 测试共享内存版本
-    ms = time_kernel(histogram_shared, d_data, d_hist, N);
+    ms = time_kernel<histogram_shared>(d_data, d_hist, N);
     cudaMemcpy(h_hist_gpu, d_hist, NUM_BINS * sizeof(int), cudaMemcpyDeviceToHost);
     printf("2. 共享内存版本:\n");
     printf("   时间: %.4f ms\n", ms);
     printf("   正确: %s\n\n", check_result(h_hist_cpu, h_hist_gpu, NUM_BINS) ? "是" : "否");
 
     // 测试多元素版本
-    ms = time_kernel(histogram_multi_element, d_data, d_hist, N);
+    ms = time_kernel<histogram_multi_element>(d_data, d_hist, N);
     cudaMemcpy(h_hist_gpu, d_hist, NUM_BINS * sizeof(int), cudaMemcpyDeviceToHost);
     printf("3. 多元素处理版本:\n");
     printf("   时间: %.4f ms\n", ms);

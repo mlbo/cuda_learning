@@ -14,17 +14,19 @@
 ## 编译运行
 
 ```bash
-# 编译所有示例
-make all
+# 在项目根目录
+mkdir build && cd build
+cmake .. -DCMAKE_CUDA_ARCHITECTURES=80
+make 24_01_graph_basics 24_02_stream_capture 24_03_graph_instantiate 24_04_graph_optimize
 
 # 运行单个示例
-./01_graph_basics
-./02_stream_capture
-./03_graph_instantiate
-./04_graph_optimize
+./24_01_graph_basics
+./24_02_stream_capture
+./24_03_graph_instantiate
+./24_04_graph_optimize
 
 # 使用 nsys 分析Graph性能
-nsys profile --stats=true -o report ./04_graph_optimize
+nsys profile --stats=true -o report ./24_04_graph_optimize
 nsys-ui report.nsys-rep
 ```
 

@@ -10,7 +10,9 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 #include <cuda_runtime.h>
+#include <cuda_fp16.h>
 #include <mma.h>  // WMMA头文件
 
 using namespace nvcuda;  // WMMA命名空间
@@ -23,8 +25,10 @@ using namespace nvcuda;  // WMMA命名空间
 // 使用WMMA的FP16矩阵乘法
 __global__ void wmma_gemm(half* A, half* B, float* C, int M, int N, int K) {
     // 计算这个warp负责的输出块位置
-    int warpM = (blockIdx.x * blockDim.x + threadIdx.x) / warpSize;
-    int warpN = (blockIdx.y * blockDim.y + threadIdx.y) / warpSize;
+    constexpr int kWarpSize = 32;
+    int warpsPerBlockN = blockDim.x / kWarpSize;
+    int warpM = blockIdx.y * blockDim.y + threadIdx.y;
+    int warpN = blockIdx.x * warpsPerBlockN + threadIdx.x / kWarpSize;
 
     // 边界检查
     if (warpM * WMMA_M >= M || warpN * WMMA_N >= N) return;
@@ -109,8 +113,9 @@ int main() {
     // WMMA配置：每个block有多个warp
     // blockDim.x 应该是warpSize的倍数
     dim3 blockDim(128, 4);  // 4 warps in x, 4 warps in y
-    dim3 gridDim((M + WMMA_M * 4 - 1) / (WMMA_M * 4),
-                 (N + WMMA_N - 1) / WMMA_N);
+    constexpr int hostWarpSize = 32;
+    dim3 gridDim((N + WMMA_N * (blockDim.x / hostWarpSize) - 1) / (WMMA_N * (blockDim.x / hostWarpSize)),
+                 (M + WMMA_M * blockDim.y - 1) / (WMMA_M * blockDim.y));
 
     // 创建事件计时
     cudaEvent_t start, stop;
@@ -140,7 +145,7 @@ int main() {
     float expected = (float)K;
     bool correct = true;
     for (int i = 0; i < M * N && correct; i++) {
-        if (fabs(h_C_wmma[i] - expected) > 0.1f) {
+        if (std::fabs(h_C_wmma[i] - expected) > 0.1f) {
             correct = false;
             printf("错误: C[%d] = %f, 期望 %f\n", i, h_C_wmma[i], expected);
         }

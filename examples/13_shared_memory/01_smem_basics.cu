@@ -11,6 +11,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 // 错误检查宏
 #define CUDA_CHECK(call)                                                       \
@@ -214,7 +215,7 @@ int main() {
   bool correct = true;
   for (int i = 1; i < N - 1 && correct; i++) {
     float expected = (i - 1) + i + (i + 1);
-    if (fabs(h_output[i] - expected) > 1e-5) {
+    if (std::fabs(h_output[i] - expected) > 1e-5) {
       printf("错误: h_output[%d] = %.1f, 期望 %.1f\n", i, h_output[i],
              expected);
       correct = false;

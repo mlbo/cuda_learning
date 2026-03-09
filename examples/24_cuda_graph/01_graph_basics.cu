@@ -6,6 +6,8 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
+#include <cstring>
 #include <cuda_runtime.h>
 
 #define CHECK_CUDA(call) \
@@ -45,7 +47,7 @@ void traditional_execution(float* d_data, float* h_data, float* h_original, int 
 
     for (int i = 0; i < iterations; i++) {
         // 每次迭代前重置数据，确保每次执行相同的工作
-        memcpy(h_data, h_original, size);
+        std::memcpy(h_data, h_original, size);
 
         // 每次迭代都需要单独启动每个操作
         CHECK_CUDA(cudaMemcpyAsync(d_data, h_data, size, cudaMemcpyHostToDevice, stream));
@@ -114,7 +116,7 @@ void graph_execution(float* d_data, float* h_data, float* h_original, int n, int
 
     for (int i = 0; i < iterations; i++) {
         // 每次迭代前重置数据，确保每次执行相同的工作
-        memcpy(h_data, h_original, size);
+        std::memcpy(h_data, h_original, size);
 
         // 每次只需执行图，所有操作批量提交
         CHECK_CUDA(cudaGraphLaunch(graphExec, stream));
@@ -194,7 +196,7 @@ void verify_results(float* h_data, int n, bool is_graph = false) {
     // 执行一次后的期望值: i * 2.0f + 1.0f
     for (int i = 0; i < 10; i++) {
         float expected = (float)i * 2.0f + 1.0f;
-        if (fabs(h_data[i] - expected) > 1e-5) {
+        if (std::fabs(h_data[i] - expected) > 1e-5) {
             printf("验证失败: h_data[%d] = %.2f, expected = %.2f\n",
                    i, h_data[i], expected);
             correct = false;
@@ -240,12 +242,12 @@ int main() {
     int iterations = 100;
 
     // 传统执行方式
-    memcpy(h_data, h_original, size);  // 重置数据
+    std::memcpy(h_data, h_original, size);  // 重置数据
     traditional_execution(d_data, h_data, h_original, n, iterations);
     verify_results(h_data, n, false);
 
     // CUDA Graph执行方式
-    memcpy(h_data, h_original, size);  // 重置数据
+    std::memcpy(h_data, h_original, size);  // 重置数据
     graph_execution(d_data, h_data, h_original, n, iterations);
     verify_results(h_data, n, true);
 

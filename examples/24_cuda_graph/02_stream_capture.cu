@@ -65,7 +65,7 @@ void single_stream_capture(float* d_data, int n) {
     CHECK_CUDA(cudaStreamDestroy(stream));
 }
 
-// 多流捕获 - 使用显式图API演示并行节点
+// 多流捕获 - 使用显式图API演示节点依赖
 void multi_stream_capture(float* d_data, int n) {
     printf("\n=== 多流捕获 (显式图API) ===\n");
     printf("注: 多流捕获需要特殊的捕获模式，这里使用显式图API演示\n");
@@ -85,13 +85,16 @@ void multi_stream_capture(float* d_data, int n) {
     nodeParams.kernelParams = (void**)kernelArgs;
     nodeParams.extra = NULL;
 
-    // 创建两个内核节点（可以并行执行）
+    // 创建两个内核节点
     cudaGraphNode_t nodeA, nodeB;
     nodeParams.func = (void*)kernel_a;
     CHECK_CUDA(cudaGraphAddKernelNode(&nodeA, graph, NULL, 0, &nodeParams));
 
     nodeParams.func = (void*)kernel_b;
     CHECK_CUDA(cudaGraphAddKernelNode(&nodeB, graph, NULL, 0, &nodeParams));
+
+    // 两个kernel读写同一块数据，必须显式建立依赖避免数据竞争
+    CHECK_CUDA(cudaGraphAddDependencies(graph, &nodeA, &nodeB, nullptr, 1));
 
     // 打印图信息
     size_t numNodes;
@@ -101,7 +104,7 @@ void multi_stream_capture(float* d_data, int n) {
     // 获取边信息 (CUDA 12+ API)
     size_t numEdges;
     CHECK_CUDA(cudaGraphGetEdges(graph, NULL, NULL, NULL, &numEdges));
-    printf("图中的边数: %zu (无依赖边，节点可并行)\n", numEdges);
+    printf("图中的边数: %zu (nodeA -> nodeB 顺序执行)\n", numEdges);
 
     // 清理
     CHECK_CUDA(cudaGraphDestroy(graph));
@@ -173,21 +176,25 @@ void capture_error_handling(float* d_data, int n) {
     CHECK_CUDA(cudaStreamBeginCapture(stream, cudaStreamCaptureModeGlobal));
     kernel_a<<<numBlocks, blockSize, 0, stream>>>(d_data, n);
 
-    // 注意: cudaStreamSynchronize在捕获中是允许的
-    // 但会被忽略（不记录到图中）
+    // 注意: 捕获期间调用同步操作通常不被允许，可能使捕获失效
     cudaError_t sync_result = cudaStreamSynchronize(stream);
     if (sync_result != cudaSuccess) {
         printf("   警告: 同步操作返回错误 (预期行为): %s\n", cudaGetErrorString(sync_result));
+        cudaStreamCaptureStatus cap_status;
+        cudaError_t cap_query = cudaStreamIsCapturing(stream, &cap_status);
+        if (cap_query == cudaSuccess && cap_status == cudaStreamCaptureStatusInvalidated) {
+            printf("   提示: 捕获已失效 (invalidated)\n");
+        }
     }
 
     cudaError_t end_result = cudaStreamEndCapture(stream, &graph);
     if (end_result != cudaSuccess) {
-        printf("   捕获失败: %s (某些操作在捕获期间不允许)\n", cudaGetErrorString(end_result));
+        printf("   捕获失败: %s (某些操作在捕获期间不允许或导致捕获失效)\n", cudaGetErrorString(end_result));
         // 重置流状态
         CHECK_CUDA(cudaStreamDestroy(stream));
         CHECK_CUDA(cudaStreamCreate(&stream));
     } else {
-        printf("   捕获成功（同步操作被忽略）\n");
+        printf("   捕获成功（本次同步未导致捕获失败）\n");
         CHECK_CUDA(cudaGraphDestroy(graph));
     }
 
