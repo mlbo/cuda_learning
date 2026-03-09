@@ -69,7 +69,7 @@ nsys-ui report.nsys-rep
 
 ```bash
 # 分析CUDA Graph性能
-nsys profile --trace=cuda,nvtx -o graph_trace ./04_graph_optimize
+nsys profile --trace=cuda,nvtx -o graph_trace ./24_04_graph_optimize
 
 # 查看报告
 nsys-ui graph_trace.nsys-rep

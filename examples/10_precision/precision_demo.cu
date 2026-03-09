@@ -24,7 +24,7 @@
 #include <cuda_fp16.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 
 // ==================== 错误检查宏 ====================
 #define CUDA_CHECK(call)                                                        \
@@ -226,7 +226,7 @@ __global__ void fma_fp16_vec2(half2* a, half2* b, half2* c, half2* result, int n
  */
 void compare_precision(float fp32_val, half fp16_val, const char* name) {
     float fp16_as_float = __half2float(fp16_val);
-    float diff = fabs(fp32_val - fp16_as_float);
+    float diff = std::fabs(fp32_val - fp16_as_float);
     float rel_error = diff / fp32_val * 100.0f;
 
     printf("  %s:\n", name);
@@ -253,7 +253,7 @@ void init_vector_fp16(half* vec, int n, float value) {
 bool verify_fp32(float* c, int n, float expected) {
     int errors = 0;
     for (int i = 0; i < n; i++) {
-        if (fabs(c[i] - expected) > 1e-5) {
+        if (std::fabs(c[i] - expected) > 1e-5) {
             if (errors < 5) {
                 printf("  错误: c[%d] = %f, 期望 %f\n", i, c[i], expected);
             }
@@ -269,7 +269,7 @@ bool verify_fp16(half* c, int n, float expected) {
 
     for (int i = 0; i < n; i++) {
         float val = __half2float(c[i]);
-        if (fabs(val - expected_half) > 0.01) {  // FP16 精度较低
+        if (std::fabs(val - expected_half) > 0.01) {  // FP16 精度较低
             errors++;
         }
     }

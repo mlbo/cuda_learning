@@ -6,6 +6,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <cuda_runtime.h>
 
 #define CHECK_CUDA(call) \
@@ -225,7 +226,7 @@ void multi_stream_async_test(int n, int n_streams) {
     // 验证结果
     bool correct = true;
     for (int i = 0; i < 10; i++) {
-        if (fabs(h_c[i] - h_a[i] * h_b[i]) > 1e-5) {
+        if (std::fabs(h_c[i] - h_a[i] * h_b[i]) > 1e-5) {
             correct = false;
             break;
         }

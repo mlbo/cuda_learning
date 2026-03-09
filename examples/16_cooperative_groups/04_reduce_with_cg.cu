@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 #include <cooperative_groups.h>
 #include <cuda_runtime.h>
 
@@ -213,8 +214,9 @@ void benchmark_reduce(const char* name, float* d_input, float* d_output,
 
         cudaFree(d_partial);
     } else {
-        // 使用 <<<>>> 语法
-        ((void(*)(float*, float*, int))kernel)<<<blocks, threads>>>(d_input, d_output, N);
+        // 对函数指针统一使用 runtime launch API
+        void* args[] = { &d_input, &d_output, &N };
+        cudaLaunchKernel(kernel, dim3(blocks), dim3(threads), args, 0, 0);
     }
 
     cudaEventRecord(stop);
@@ -228,7 +230,7 @@ void benchmark_reduce(const char* name, float* d_input, float* d_output,
     cudaMemcpy(&result, d_output, sizeof(float), cudaMemcpyDeviceToHost);
 
     printf("%-20s: %.3f ms, 结果 = %.0f %s\n",
-           name, ms, result, fabs(result - N) < 1e-3 ? "[正确]" : "[错误]");
+           name, ms, result, std::fabs(result - N) < 1e-3 ? "[正确]" : "[错误]");
 
     cudaEventDestroy(start);
     cudaEventDestroy(stop);

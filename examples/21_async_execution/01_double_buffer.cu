@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <cuda_runtime.h>
 
 #define TILE_SIZE 32
@@ -306,7 +307,7 @@ void test_correctness() {
     // 验证结果 (C = A * B, 其中 A和B都是1，所以 C[i][j] = N)
     bool correct = true;
     for (int i = 0; i < N * N; i++) {
-        if (fabs(h_C[i] - N) > 1e-3) {
+        if (std::fabs(h_C[i] - N) > 1e-3) {
             printf("Error at index %d: expected %d, got %.1f\n", i, N, h_C[i]);
             correct = false;
             break;

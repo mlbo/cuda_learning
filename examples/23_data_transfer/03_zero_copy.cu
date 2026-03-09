@@ -137,7 +137,7 @@ void zero_copy_test(int n) {
     // 验证结果
     bool correct = true;
     for (int i = 0; i < 10; i++) {
-        if (fabs(h_out[i] - h_in[i] * 2.0f) > 1e-5) {
+        if (std::fabs(h_out[i] - h_in[i] * 2.0f) > 1e-5) {
             correct = false;
             break;
         }

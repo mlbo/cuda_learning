@@ -19,6 +19,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 // ==================== 错误检查宏 ====================
 
@@ -139,7 +140,7 @@ bool verify_result(float *c, int n, float expected)
     for (int i = 0; i < n; i++)
     {
         // 使用浮点数比较的容差
-        if (fabs(c[i] - expected) > 1e-5)
+        if (std::fabs(c[i] - expected) > 1e-5)
         {
             printf("验证失败: c[%d] = %.2f, 期望 %.2f\n", i, c[i], expected);
             return false;

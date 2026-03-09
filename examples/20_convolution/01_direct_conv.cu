@@ -11,6 +11,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 #include <cuda_runtime.h>
 
 // 2D直接卷积核函数
@@ -134,7 +135,7 @@ int main() {
     // 检查正确性
     bool correct = true;
     for (int i = 0; i < out_H * out_W && correct; i++) {
-        if (fabs(h_output[i] - h_output_ref[i]) > 1e-5) {
+        if (std::fabs(h_output[i] - h_output_ref[i]) > 1e-5) {
             correct = false;
             printf("错误: output[%d] = %f, 期望 %f\n", i, h_output[i], h_output_ref[i]);
         }

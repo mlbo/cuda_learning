@@ -252,7 +252,7 @@ void combined_optimization_test(int n) {
     bool correct = true;
     for (int i = 0; i < 10; i++) {
         float expected = a[i] * b[i] + a[i];
-        if (fabs(c[i] - expected) > 1e-5) {
+        if (std::fabs(c[i] - expected) > 1e-5) {
             correct = false;
             break;
         }

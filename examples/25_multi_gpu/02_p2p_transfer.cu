@@ -11,6 +11,7 @@
 #include <cuda_runtime.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 
 #define CHECK_CUDA(call) \
     do { \
@@ -121,7 +122,7 @@ void test_p2p_memcpy_peer(int gpu0, int gpu1, size_t size_bytes) {
     CHECK_CUDA(cudaSetDevice(gpu1));
     CHECK_CUDA(cudaMemcpy(&h_check, d_dst, sizeof(float), cudaMemcpyDeviceToHost));
     printf("  数据验证: %s (期望 %.1f, 实际 %.1f)\n",
-           (fabs(h_check - val) < 0.01f) ? "通过" : "失败", val, h_check);
+           (std::fabs(h_check - val) < 0.01f) ? "通过" : "失败", val, h_check);
 
     // 清理
     CHECK_CUDA(cudaSetDevice(gpu0));

@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 #include <cooperative_groups.h>
 #include <cuda_runtime.h>
 
@@ -263,7 +264,7 @@ int main() {
         printf("迭代结果:\n");
         for (int i = 0; i < iterations; i++) {
             printf("  迭代 %d: sum = %.0f (期望 ~%.0f)\n",
-                   i, h_results[i], N * pow(1.1f, i + 1));
+                   i, h_results[i], N * std::pow(1.1f, i + 1));
         }
 
         delete[] h_results;
@@ -281,8 +282,13 @@ int main() {
     int too_many_blocks = 100000;
     printf("尝试启动 %d blocks（预期失败）...\n", too_many_blocks);
 
-    int dummy = 0;
-    void* args3[] = { &dummy };
+    int num_tasks_err = 1;
+    int *d_task_queue_err, *d_results_err;
+    cudaMalloc(&d_task_queue_err, sizeof(int));
+    cudaMalloc(&d_results_err, sizeof(int));
+    cudaMemset(d_task_queue_err, 0, sizeof(int));
+
+    void* args3[] = { &d_task_queue_err, &d_results_err, (void*)&num_tasks_err };
     err = manager.launch((void*)persistent_blocks,
                          dim3(too_many_blocks),
                          dim3(threads_per_block),
@@ -293,6 +299,8 @@ int main() {
         // cudaErrorCooperativeLaunchTooManyBlocks 在CUDA 12中已弃用
         printf("  -> 原因: block 数量超出设备能同时驻留的限制\n");
     }
+    cudaFree(d_task_queue_err);
+    cudaFree(d_results_err);
 
     printf("\n=== 示例完成 ===\n");
     return 0;

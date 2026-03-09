@@ -15,6 +15,7 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 #include <cooperative_groups.h>
 #include <cuda_runtime.h>
 
@@ -237,10 +238,10 @@ int main() {
     printf("\n结果验证:\n");
     printf("期望值: %.0f\n", expected);
     printf("计算值: %.0f\n", h_result);
-    printf("误差: %.6f\n", fabs(h_result - expected));
+    printf("误差: %.6f\n", std::fabs(h_result - expected));
     printf("耗时: %.3f ms\n", ms);
 
-    bool correct = fabs(h_result - expected) < 1e-3;
+    bool correct = std::fabs(h_result - expected) < 1e-3;
     printf("结果: %s\n", correct ? "正确" : "错误");
 
     // 测试 grid 属性

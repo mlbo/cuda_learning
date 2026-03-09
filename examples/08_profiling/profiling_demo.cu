@@ -30,6 +30,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 // ==================== 错误检查宏 ====================
 #define CUDA_CHECK(call)                                                        \
@@ -335,7 +336,7 @@ int main(int argc, char** argv) {
 
     int errors = 0;
     for (int i = 0; i < n && errors < 5; i++) {
-        if (fabs(h_c[i] - 30.0f) > 1e-3) {  // compute_intensive 的结果
+        if (std::fabs(h_c[i] - 30.0f) > 1e-3) {  // compute_intensive 的结果
             errors++;
         }
     }

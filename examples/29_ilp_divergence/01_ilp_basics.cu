@@ -126,8 +126,8 @@ __global__ void add_ilp_x4_vector(float4* __restrict__ a,
 // ============================================================================
 // 计时函数
 // ============================================================================
-float time_kernel(void (*kernel)(float*, float*, float*, int),
-                  float* d_a, float* d_b, float* d_c, int N,
+template <void (*Kernel)(float*, float*, float*, int)>
+float time_kernel(float* d_a, float* d_b, float* d_c, int N,
                   int blocks, int threads, int warmup = 5, int repeat = 20) {
     cudaEvent_t start, stop;
     CUDA_CHECK(cudaEventCreate(&start));
@@ -135,14 +135,14 @@ float time_kernel(void (*kernel)(float*, float*, float*, int),
 
     // 预热
     for (int i = 0; i < warmup; i++) {
-        kernel<<<blocks, threads>>>(d_a, d_b, d_c, N);
+        Kernel<<<blocks, threads>>>(d_a, d_b, d_c, N);
     }
     CUDA_CHECK(cudaDeviceSynchronize());
 
     // 计时
     CUDA_CHECK(cudaEventRecord(start));
     for (int i = 0; i < repeat; i++) {
-        kernel<<<blocks, threads>>>(d_a, d_b, d_c, N);
+        Kernel<<<blocks, threads>>>(d_a, d_b, d_c, N);
     }
     CUDA_CHECK(cudaEventRecord(stop));
     CUDA_CHECK(cudaEventSynchronize(stop));
@@ -193,19 +193,19 @@ int main(int argc, char** argv) {
 
     // 版本1: 无ILP
     int blocks1 = (N + threads - 1) / threads;
-    time_ms = time_kernel(add_no_ilp, d_a, d_b, d_c, N, blocks1, threads);
+    time_ms = time_kernel<add_no_ilp>(d_a, d_b, d_c, N, blocks1, threads);
     printf("版本1 (无ILP):      %.4f ms  (%.2f GB/s)\n",
            time_ms, 3.0 * bytes / time_ms / 1e6);
 
     // 版本2: ILP x2
     int blocks2 = (N / 2 + threads - 1) / threads;
-    time_ms = time_kernel(add_ilp_x2, d_a, d_b, d_c, N, blocks2, threads);
+    time_ms = time_kernel<add_ilp_x2>(d_a, d_b, d_c, N, blocks2, threads);
     printf("版本2 (ILP x2):     %.4f ms  (%.2f GB/s)\n",
            time_ms, 3.0 * bytes / time_ms / 1e6);
 
     // 版本3: ILP x4
     int blocks3 = (N / 4 + threads - 1) / threads;
-    time_ms = time_kernel(add_ilp_x4, d_a, d_b, d_c, N, blocks3, threads);
+    time_ms = time_kernel<add_ilp_x4>(d_a, d_b, d_c, N, blocks3, threads);
     printf("版本3 (ILP x4):     %.4f ms  (%.2f GB/s)\n",
            time_ms, 3.0 * bytes / time_ms / 1e6);
 

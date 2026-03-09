@@ -12,6 +12,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 #define CUDA_CHECK(call)                                                       \
   do {                                                                         \
@@ -349,7 +350,7 @@ int main() {
   printf("规约结果: %.0f\n", total);
   printf("期望结果: %.0f\n", expected);
   printf("验证: %s\n\n",
-         fabs(total - expected) < 1e-3 ? "通过" : "失败");
+         std::fabs(total - expected) < 1e-3 ? "通过" : "失败");
 
   // ---------- 测试4: 同步计数 ----------
   printf("--- 测试4: __syncthreads_count ---\n");

@@ -14,6 +14,7 @@
  */
 
 #include <stdio.h>
+#include <utility>
 #include <cooperative_groups.h>
 #include <cuda_runtime.h>
 
@@ -151,9 +152,10 @@ __global__ void cluster_barrier_demo(float* data, int N) {
 
     // 现在可以安全访问其他 block 的数据
     if (block.thread_rank() == 0) {
-        int* other_smem = cluster.map_shared_rank((int*)smem,
-                                                   (cluster.block_rank() + 1) % cluster.num_blocks());
+        float* other_smem = cluster.map_shared_rank(smem,
+                                                    (cluster.block_rank() + 1) % cluster.num_blocks());
         // 使用其他 block 的共享内存...
+        (void)other_smem;
     }
 
     cluster.sync();
@@ -262,6 +264,7 @@ int main() {
         cudaLaunchConfig_t config = {
             .gridDim = dim3(blocks),
             .blockDim = dim3(threads),
+            .dynamicSmemBytes = threads * sizeof(int),
         };
 
         cudaLaunchAttribute attrs[1];

@@ -12,6 +12,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 #include <cuda_runtime.h>
 
 // 矩阵尺寸（可调整）
@@ -75,7 +76,7 @@ void init_matrix(float* mat, int rows, int cols, float value) {
 // 验证结果
 bool verify_result(float* C, float* ref, int m, int n, float eps = 1e-3) {
     for (int i = 0; i < m * n; i++) {
-        if (fabs(C[i] - ref[i]) > eps) {
+        if (std::fabs(C[i] - ref[i]) > eps) {
             printf("验证失败: C[%d] = %f, ref = %f\n", i, C[i], ref[i]);
             return false;
         }

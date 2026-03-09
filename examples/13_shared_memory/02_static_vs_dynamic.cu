@@ -12,6 +12,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 #define CUDA_CHECK(call)                                                       \
   do {                                                                         \
@@ -361,7 +362,7 @@ int main() {
   printf("  静态共享内存: %.3f ms\n", ms_static);
   printf("  动态共享内存: %.3f ms\n", ms_dynamic);
   printf("  性能差异: %.2f%%\n",
-         fabs(ms_static - ms_dynamic) / ms_static * 100);
+         std::fabs(ms_static - ms_dynamic) / ms_static * 100);
 
   // ---------- 设备属性查询 ----------
   printf("\n--- 设备共享内存属性 ---\n");

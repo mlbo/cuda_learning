@@ -12,6 +12,7 @@
 #include <nccl.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <thread>
 #include <vector>
 #include <chrono>
@@ -147,7 +148,7 @@ void single_thread_allreduce_example(int num_gpus) {
         CHECK_CUDA(cudaMemcpy(&h_val, d_recv[i], sizeof(float), cudaMemcpyDeviceToHost));
         printf("  GPU %d: %.1f (期望 %.1f) %s\n",
                i, h_val, expected,
-               (fabs(h_val - expected) < 0.01f) ? "✓" : "✗");
+               (std::fabs(h_val - expected) < 0.01f) ? "✓" : "✗");
     }
 
     // 清理

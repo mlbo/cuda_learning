@@ -245,7 +245,8 @@ void benchmark_all_versions(int size) {
 
         cudaEventRecord(start);
         for (int i = 0; i < 10; i++) {  // 多次运行取平均
-            kernels[k].func<<<grid, block>>>(d_input, d_output, size, size);
+            void* args[] = { &d_input, &d_output, &size, &size };
+            cudaLaunchKernel((const void*)kernels[k].func, grid, block, args, 0, 0);
         }
         cudaEventRecord(stop);
         cudaEventSynchronize(stop);

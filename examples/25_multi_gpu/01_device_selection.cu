@@ -11,6 +11,7 @@
 #include <cuda_runtime.h>
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <vector>
 
 #define CHECK_CUDA(call) \
@@ -294,7 +295,7 @@ void multi_gpu_parallel_example() {
     bool correct = true;
     for (int i = 0; i < N; i++) {
         float expected = h_a[i] + h_b[i];
-        if (fabs(h_c[i] - expected) > 1e-5) {
+        if (std::fabs(h_c[i] - expected) > 1e-5) {
             correct = false;
             break;
         }

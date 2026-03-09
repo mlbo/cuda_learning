@@ -10,6 +10,8 @@
  */
 
 #include <stdio.h>
+#include <cmath>
+#include <utility>
 #include <cooperative_groups.h>
 #include <cuda_runtime.h>
 
@@ -190,7 +192,7 @@ int main() {
     for (int i = 0; i < N; i++) expected_sum += h_data[i];
     printf("计算的和: %.0f\n", h_sum);
     printf("期望的和: %.0f\n", expected_sum);
-    printf("结果: %s\n", fabs(h_sum - expected_sum) < 1e-5 ? "正确" : "错误");
+    printf("结果: %s\n", std::fabs(h_sum - expected_sum) < 1e-5 ? "正确" : "错误");
 
     // 清理
     cudaFree(d_data);

@@ -7,6 +7,7 @@
 
 #include <cstdio>
 #include <cstdlib>
+#include <cmath>
 #include <cuda_runtime.h>
 
 #define TILE_SIZE 32
@@ -328,7 +329,7 @@ void test_correctness() {
 
     bool correct = true;
     for (int i = 0; i < N; i++) {
-        if (fabs(h_output[i] - h_expected[i]) > 1e-3) {
+        if (std::fabs(h_output[i] - h_expected[i]) > 1e-3) {
             printf("软件流水线错误 at %d: expected %.1f, got %.1f\n",
                    i, h_expected[i], h_output[i]);
             correct = false;
@@ -346,7 +347,7 @@ void test_correctness() {
 
     correct = true;
     for (int i = 0; i < N; i++) {
-        if (fabs(h_output[i] - h_expected[i]) > 1e-3) {
+        if (std::fabs(h_output[i] - h_expected[i]) > 1e-3) {
             printf("Warp特化错误 at %d: expected %.1f, got %.1f\n",
                    i, h_expected[i], h_output[i]);
             correct = false;

@@ -12,6 +12,7 @@
 #include <cuda_runtime.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cmath>
 
 #define CUDA_CHECK(call)                                                       \
   do {                                                                         \
@@ -223,7 +224,7 @@ void matmul_cpu(const float *A, const float *B, float *C, int n) {
 
 bool verify_result(const float *C, const float *C_ref, int n, float eps = 1e-3) {
   for (int i = 0; i < n * n; i++) {
-    if (fabs(C[i] - C_ref[i]) > eps) {
+    if (std::fabs(C[i] - C_ref[i]) > eps) {
       printf("Mismatch at index %d: got %.4f, expected %.4f\n", i, C[i],
              C_ref[i]);
       return false;
@@ -236,9 +237,8 @@ bool verify_result(const float *C, const float *C_ref, int n, float eps = 1e-3) 
 // 性能测试函数
 // ============================================================================
 
-void benchmark_matmul(const char *name, void (*kernel)(const float *, const float *,
-                                                       float *, int),
-                      const float *d_A, const float *d_B, float *d_C, int n,
+template <void (*Kernel)(const float *, const float *, float *, int)>
+void benchmark_matmul(const float *d_A, const float *d_B, float *d_C, int n,
                       int iterations, float *time_ms) {
   dim3 blockSize(TILE_SIZE, TILE_SIZE);
   dim3 gridSize((n + TILE_SIZE - 1) / TILE_SIZE, (n + TILE_SIZE - 1) / TILE_SIZE);
@@ -248,13 +248,13 @@ void benchmark_matmul(const char *name, void (*kernel)(const float *, const floa
   CUDA_CHECK(cudaEventCreate(&stop));
 
   // 预热
-  kernel<<<gridSize, blockSize>>>(d_A, d_B, d_C, n);
+  Kernel<<<gridSize, blockSize>>>(d_A, d_B, d_C, n);
   CUDA_CHECK(cudaDeviceSynchronize());
 
   // 计时
   CUDA_CHECK(cudaEventRecord(start));
   for (int i = 0; i < iterations; i++) {
-    kernel<<<gridSize, blockSize>>>(d_A, d_B, d_C, n);
+    Kernel<<<gridSize, blockSize>>>(d_A, d_B, d_C, n);
   }
   CUDA_CHECK(cudaEventRecord(stop));
   CUDA_CHECK(cudaEventSynchronize(stop));
@@ -312,8 +312,7 @@ int main() {
   printf("特点: 每个元素从全局内存读取N次\n");
 
   float time_naive;
-  benchmark_matmul("Naive", matmul_naive, d_A, d_B, d_C, n, iterations,
-                   &time_naive);
+  benchmark_matmul<matmul_naive>(d_A, d_B, d_C, n, iterations, &time_naive);
 
   CUDA_CHECK(cudaMemcpy(h_C, d_C, bytes, cudaMemcpyDeviceToHost));
 
@@ -329,8 +328,7 @@ int main() {
   printf("特点: 数据在共享内存中复用\n");
 
   float time_shared;
-  benchmark_matmul("Shared", matmul_shared, d_A, d_B, d_C, n, iterations,
-                   &time_shared);
+  benchmark_matmul<matmul_shared>(d_A, d_B, d_C, n, iterations, &time_shared);
 
   CUDA_CHECK(cudaMemcpy(h_C, d_C, bytes, cudaMemcpyDeviceToHost));
 
@@ -346,8 +344,7 @@ int main() {
   printf("特点: 使用填充避免Bank Conflict\n");
 
   float time_opt;
-  benchmark_matmul("Optimized", matmul_shared_optimized, d_A, d_B, d_C, n,
-                   iterations, &time_opt);
+  benchmark_matmul<matmul_shared_optimized>(d_A, d_B, d_C, n, iterations, &time_opt);
 
   CUDA_CHECK(cudaMemcpy(h_C, d_C, bytes, cudaMemcpyDeviceToHost));
 

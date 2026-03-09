@@ -11,6 +11,7 @@
  */
 
 #include <stdio.h>
+#include <cmath>
 #include <cooperative_groups.h>
 #include <cuda_runtime.h>
 
@@ -257,7 +258,7 @@ int main() {
         printf("输入: %d 个 1.0f\n", N);
         printf("计算的和: %.0f\n", h_output);
         printf("期望的和: %d\n", N);
-        printf("结果: %s\n", fabs(h_output - N) < 1e-5 ? "正确" : "错误");
+        printf("结果: %s\n", std::fabs(h_output - N) < 1e-5 ? "正确" : "错误");
 
         cudaFree(d_input);
         cudaFree(d_output);
