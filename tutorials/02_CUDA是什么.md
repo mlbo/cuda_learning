@@ -12,7 +12,13 @@
 
 ### 1.1 定义
 
-**CUDA**（Compute Unified Device Architecture，统一计算设备架构）是 NVIDIA 开发的一个并行计算平台和编程模型。
+**CUDA**（Compute Unified Device Architecture，统一计算设备架构）是 NVIDIA 在 2006 年推出的并行计算平台和编程模型，利用 NVIDIA GPU 的大规模并行计算能力高效解决复杂计算问题。
+
+#### 官方文档：GPU 计算应用架构
+
+![GPU Computing Applications](../lecture_slides/cuda_12_2_1_programming_guide/images/gpu-computing-applications-fe11dca7b1.png)
+
+> **图示说明**（来自 CUDA C++ Programming Guide 12.2.1）：CUDA 支持多种编程语言和 API，包括 C++、FORTRAN、DirectCompute、OpenACC 等。
 
 ### 1.2 CUDA 的四个核心特点
 
@@ -99,7 +105,22 @@ sequenceDiagram
 - 由 CPU 调用，在 GPU 上执行
 - 被成千上万个线程同时执行
 
-### 2.3 CUDA 程序的基本结构
+### 2.4 Heterogeneous Programming（异构编程模型）
+
+CUDA 程序采用异构编程模型，CPU 和 GPU 协同工作：
+
+#### 官方文档：异构编程模型
+
+![Heterogeneous Programming](../lecture_slides/cuda_12_2_1_programming_guide/images/heterogeneous-programming-abc17972d6.png)
+
+> **图示说明**（来自 CUDA C++ Programming Guide 12.2.1）：CUDA 编程模型假设 CUDA 线程在一个物理上独立的设备（Device）上执行，该设备作为运行 C++ 程序的主机（Host）的协处理器。例如，当 kernel 在 GPU 上执行时，C++ 程序的其余部分在 CPU 上执行。
+
+**关键要点**：
+- 串行代码在 Host 上执行
+- 并行代码在 Device 上执行
+- Host 和 Device 有各自独立的内存空间
+
+### 2.5 CUDA 程序的基本结构
 
 ```mermaid
 flowchart TB
@@ -212,6 +233,12 @@ graph TB
 ### 4.2 线程的组织方式
 
 CUDA 使用**三级层次结构**来组织线程：
+
+#### 官方文档：自动扩展性
+
+![Automatic Scalability](../lecture_slides/cuda_12_2_1_programming_guide/images/automatic-scalability-144767485e.png)
+
+> **图示说明**（来自 CUDA C++ Programming Guide 12.2.1）：每个线程块可以在任意可用的流多处理器（SM）上调度，顺序任意，可以并发或串行执行。这使得编译后的 CUDA 程序可以在任意数量的 SM 上执行。
 
 ```mermaid
 graph TB

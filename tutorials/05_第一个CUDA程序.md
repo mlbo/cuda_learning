@@ -516,6 +516,66 @@ nvcc -arch=sm_86 -o hello_cuda hello_cuda.cu
 # sm_90 - H100
 ```
 
+#### NVCC 编译流程详解
+
+> **官方文档说明**（来自 CUDA C++ Programming Guide 12.2.1）：
+>
+> `nvcc` 是一个编译器驱动程序，它简化了编译 C++ 或 PTX 代码的过程。`nvcc` 的基本工作流程包括：
+>
+> 1. 将设备代码与主机代码分离
+> 2. 将设备代码编译为 PTX 汇编或 cubin 二进制
+> 3. 修改主机代码，将 `<<<...>>>` 语法替换为运行时函数调用
+
+```mermaid
+graph TB
+    subgraph NVCC编译流程["NVCC 编译流程"]
+        A["hello_cuda.cu<br/>(源代码)"] --> B["nvcc"]
+        B --> C["分离代码"]
+        C --> D["设备代码<br/>Device Code"]
+        C --> E["主机代码<br/>Host Code"]
+        D --> F["PTX / cubin<br/>(GPU 可执行)"]
+        E --> G["修改后的 C++<br/>（添加运行时调用）"]
+        F --> H["最终可执行文件<br/>hello_cuda"]
+        G --> H
+    end
+
+    style A fill:#E3F2FD
+    style F fill:#E8F5E9
+    style H fill:#FFF3E0
+```
+
+#### 计算能力与架构参数
+
+| GPU 架构 | 计算能力 | nvcc 参数 | 代表 GPU |
+|----------|----------|-----------|----------|
+| **Kepler** | 3.0, 3.5 | sm_30, sm_35 | K40, K80 |
+| **Maxwell** | 5.0, 5.2 | sm_50, sm_52 | GTX 980, M40 |
+| **Pascal** | 6.0, 6.1 | sm_60, sm_61 | P100, GTX 1080 |
+| **Volta** | 7.0 | sm_70 | V100 |
+| **Turing** | 7.5 | sm_75 | RTX 2080, T4 |
+| **Ampere** | 8.0, 8.6 | sm_80, sm_86 | A100, RTX 3090 |
+| **Ada Lovelace** | 8.9 | sm_89 | RTX 4090 |
+| **Hopper** | 9.0 | sm_90 | H100 |
+
+> **重要**：二进制代码是架构特定的。为计算能力 X.y 生成的 cubin 对象只能在计算能力 X.z（其中 z≥y）的设备上执行。
+
+#### 多架构编译
+
+为了确保应用程序能在不同 GPU 上运行，可以生成多架构支持：
+
+```bash
+# 生成多架构支持的二进制文件
+nvcc -gencode arch=compute_70,code=sm_70 \
+      -gencode arch=compute_80,code=sm_80 \
+      -gencode arch=compute_86,code=sm_86 \
+      -o hello_cuda hello_cuda.cu
+```
+
+这会生成：
+- sm_70 二进制：在计算能力 7.0 和 7.5 的设备上运行
+- sm_80 二进制：在计算能力 8.0 的设备上运行
+- sm_86 二进制：在计算能力 8.6 的设备上运行
+
 ### 3.3 运行程序
 
 ```bash
@@ -901,7 +961,7 @@ mindmap
 
 ## 下一章
 
-[第六章：线程层级结构](./06_线程层级结构.md) - 深入理解 Grid、Block 和 Thread 的组织方式
+[第六章：CUDA 内存管理基础](./06_内存管理基础.md) - 掌握 CUDA 内存管理核心函数
 
 ---
 

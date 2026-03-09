@@ -40,12 +40,12 @@ endif()
 # 编译选项配置
 # =============================================================================
 # 设置 C++ 标准
-set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # 设置 CUDA 标准
-set(CMAKE_CUDA_STANDARD 14)
+set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 
 # 添加编译选项
@@ -70,6 +70,25 @@ add_subdirectory(08_profiling)       # 第 8 章: 性能分析
 add_subdirectory(09_memory_opt)      # 第 9 章: 内存优化
 add_subdirectory(10_precision)       # 第 10 章: 精度与数值
 add_subdirectory(11_roofline)        # 第 11 章: Roofline 模型
+add_subdirectory(12_atomic_race)     # 第 12 章: 原子操作与竞争条件
+add_subdirectory(13_shared_memory)   # 第 13 章: 共享内存深入
+add_subdirectory(14_reduce)          # 第 14 章: 规约算法优化
+add_subdirectory(15_bank_conflict)   # 第 15 章: Bank Conflict优化
+add_subdirectory(16_cooperative_groups) # 第 16 章: Cooperative Groups
+add_subdirectory(17_gemm_basics)       # 第 17 章: GEMM优化入门
+add_subdirectory(18_gemm_tiling)       # 第 18 章: GEMM分块优化
+add_subdirectory(19_tensor_core)       # 第 19 章: Tensor Core编程
+add_subdirectory(20_convolution)       # 第 20 章: 卷积算子实现
+add_subdirectory(21_async_execution)   # 第 21 章: 异步执行与延迟隐藏
+add_subdirectory(22_streams)           # 第 22 章: CUDA流与并发
+add_subdirectory(23_data_transfer)     # 第 23 章: 数据传输优化
+add_subdirectory(24_cuda_graph)        # 第 24 章: CUDA Graph
+add_subdirectory(25_multi_gpu)         # 第 25 章: 多GPU编程
+add_subdirectory(26_quantization)      # 第 26 章: 低精度与量化
+add_subdirectory(27_ptx_optimization)# 第 27 章: PTX与底层优化
+add_subdirectory(28_micro_optimization) # 第 28 章: 微指令级调优
+add_subdirectory(29_ilp_divergence)  # 第 29 章: ILP与Warp Divergence
+add_subdirectory(30_cuda_libraries)  # 第 30 章: CUDA官方库实战
 
 # =============================================================================
 # 构建信息输出

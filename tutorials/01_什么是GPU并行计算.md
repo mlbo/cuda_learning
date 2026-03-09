@@ -70,6 +70,12 @@ graph LR
 
 ### 2.2 架构对比图
 
+#### 官方文档对比图
+
+![GPU Devotes More Transistors to Data Processing](../lecture_slides/cuda_12_2_1_programming_guide/images/gpu-devotes-more-transistors-to-data-processing-a11dc5ecce.png)
+
+> **图示说明**（来自 CUDA C++ Programming Guide 12.2.1）：GPU 将更多晶体管用于数据处理，而非数据缓存和流控制。这使得 GPU 在大规模并行计算中具有更高的吞吐量。
+
 ```mermaid
 graph TB
     subgraph CPU["CPU (少量强大核心)"]
