@@ -765,7 +765,7 @@ sudo nvidia-smi --gpu-reset
 
 ```mermaid
 flowchart TB
-    Error["遇到错误"] --> Type{错误类型？"}
+    Error["遇到错误"] --> Type{"错误类型？"}
 
     Type -->|"编译错误"| Compile["检查 nvcc 和文件扩展名"]
     Type -->|"运行时错误"| Runtime["检查 GPU 状态和内存"]

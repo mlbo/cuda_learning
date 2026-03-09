@@ -145,8 +145,8 @@ __global__ void naive_gemm(float* A, float* B, float* C, int M, int N, int K) {
 **线程组织**：
 ```mermaid
 graph TB
-    subgrid["Grid (2D)"]
-        subblock["Block (BLOCK_SIZE x BLOCK_SIZE)"]
+    subgraph subgrid["Grid (2D)"]
+        subgraph subblock["Block (BLOCK_SIZE x BLOCK_SIZE)"]
             t00["thread(0,0)"]
             t10["thread(1,0)"]
             t01["thread(0,1)"]
@@ -154,7 +154,7 @@ graph TB
         end
     end
 
-    submatrix["C矩阵"]
+    subgraph submatrix["C矩阵"]
         c00["C[0,0]"]
         c10["C[1,0]"]
         c01["C[0,1]"]
